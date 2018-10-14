@@ -16,7 +16,7 @@
 #' kid_a <- get_tracks(artist_name = "Radiohead", track_name = "Kid A", return_closest_track = TRUE)
 #' }
 
-get_tracks <- function(track_name, artist_name = NULL, album_name = NULL, return_closest_track = FALSE, access_token = get_spotify_access_token()) {
+get_tracks <- function(track_name, artist_name = NULL, album_name = NULL, return_closest_track = FALSE, retry = FALSE, retry_times = 3, access_token = get_spotify_access_token()) {
 
     string_search <- track_name
 
@@ -29,12 +29,23 @@ get_tracks <- function(track_name, artist_name = NULL, album_name = NULL, return
     }
 
     # Search Spotify API for track name
-    res <- GET('https://api.spotify.com/v1/search',
-               query = list(q = string_search,
-                            type = 'track',
-                            access_token = access_token)
-    ) %>% content
-
+    # switch between GET and RETRY functions
+    base_url <- "https://api.spotify.com/v1/search"
+    if (retry) {
+        RETRY("GET",
+              url = base_url,
+              query = list(q = string_search,
+                           type = "track",
+                           access_token = access_token),
+              times = retry_times) %>%
+            content()
+    } else {
+        res <- GET(base_url,
+                   query = list(q = string_search,
+                                type = "track",
+                                access_token = access_token)
+        ) %>% content()
+    }
     if (length(res$tracks$items) >= 0) {
 
         res <- res %>% .$tracks %>% .$items
