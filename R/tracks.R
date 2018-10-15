@@ -7,6 +7,8 @@
 #' @param artist_name Optional. A string with artist name
 #' @param album_name Optional. A string with album name
 #' @param return_closest_track Optional. A string with album name
+#' @param retry Optional. TRUE if httr::RETRY shall be called instead of httr::GET. Default FALSE
+#' @param retry_times Optional. Number of attempts for RETRY if request fails
 #' @param access_token Spotify Web API token. Defaults to spotifyr::get_spotify_access_token()
 #' @keywords track uri string search
 #' @export
@@ -32,7 +34,7 @@ get_tracks <- function(track_name, artist_name = NULL, album_name = NULL, return
     # switch between GET and RETRY functions
     base_url <- "https://api.spotify.com/v1/search"
     if (retry) {
-        RETRY("GET",
+        res <- RETRY("GET",
               url = base_url,
               query = list(q = string_search,
                            type = "track",
